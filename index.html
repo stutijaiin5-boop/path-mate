@@ -1668,6 +1668,176 @@
       background: rgba(255,140,102,0.1);
     }
 
+    /* ===== WEEK PLANNER ===== */
+    .week-cards {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+    }
+    .week-cards::-webkit-scrollbar { height: 4px; }
+    .week-cards::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .week-card {
+      flex: 0 0 160px;
+      scroll-snap-align: start;
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      text-align: center;
+      position: relative;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+    .week-card.today {
+      border-color: var(--accent);
+      box-shadow: 0 0 14px rgba(255,140,102,0.35);
+    }
+    .week-card .wc-dayname {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+    .week-card .wc-date {
+      font-size: 0.65rem;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+    }
+    .week-card .wc-icon {
+      font-size: 1.6rem;
+      margin-bottom: 8px;
+    }
+    .week-card .wc-type-selector {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      margin-bottom: 10px;
+    }
+    .week-card .wc-type-selector button {
+      padding: 4px 2px;
+      font-size: 0.6rem;
+      border-radius: 6px;
+      border: 1.5px solid var(--border);
+      background: var(--bg-body);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-weight: 500;
+    }
+    .week-card .wc-type-selector button.active {
+      border-color: currentColor;
+      background: currentColor;
+      color: white;
+    }
+    .week-card .wc-type-selector button .wc-type-icon {
+      display: block;
+      font-size: 0.8rem;
+    }
+    .week-card .wc-stepper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 8px 0 6px;
+    }
+    .week-card .wc-stepper button {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      background: var(--bg-body);
+      color: var(--text-primary);
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .week-card .wc-stepper button:active { background: var(--border); }
+    .week-card .wc-stepper .wc-hours {
+      font-size: 1rem;
+      font-weight: 700;
+      min-width: 28px;
+      text-align: center;
+      color: var(--text-primary);
+    }
+    .week-card .wc-stepper .wc-hours-label {
+      font-size: 0.6rem;
+      color: var(--text-secondary);
+    }
+    .week-card .wc-ring-wrap {
+      position: relative;
+      width: 44px;
+      height: 44px;
+      margin: 0 auto 4px;
+    }
+    .week-card .wc-ring-wrap svg {
+      width: 44px;
+      height: 44px;
+      transform: rotate(-90deg);
+    }
+    .week-card .wc-ring-wrap .wc-ring-bg {
+      fill: none;
+      stroke: var(--border);
+      stroke-width: 4;
+    }
+    .week-card .wc-ring-wrap .wc-ring-fill {
+      fill: none;
+      stroke: var(--primary);
+      stroke-width: 4;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.3s, stroke 0.3s;
+    }
+    .week-card .wc-ring-wrap .wc-ring-pct {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .week-card .wc-today-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: var(--accent);
+      color: white;
+      font-size: 0.55rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 10px;
+      letter-spacing: 0.3px;
+    }
+
+    /* Home pill */
+    .home-day-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 100px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin-top: 8px;
+      margin-bottom: 12px;
+    }
+
+    /* Roadmap day-type dot */
+    .day-node .dot.type-dot {
+      width: 16px;
+      height: 16px;
+    }
+    .day-node .dot.type-dot.today {
+      width: 20px;
+      height: 20px;
+      box-shadow: 0 0 8px currentColor;
+    }
+
     /* ===== MISC ===== */
     .tag-study { background: #6C5CE7; color: white; }
     .tag-practice { background: #FF8C66; color: white; }
@@ -1926,6 +2096,7 @@
     <div class="screen-content">
       <div class="home-greeting">Good <span id="greetingTime">morning</span>, <span class="name" id="greetingName">Mate</span> 👋</div>
       <div class="home-date" id="homeDate"></div>
+      <div class="home-day-pill" id="homeDayPill"></div>
 
       <div class="progress-ring-card">
         <div class="progress-ring-small">
@@ -2118,6 +2289,12 @@
         <button class="regenerate-btn" id="regenerateRoadmapBtn">🔄 Re-generate Roadmap</button>
       </div>
 
+      <div class="profile-section" id="myWeekSection">
+        <h3>📅 My Week</h3>
+        <p style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:12px;">Set your weekly routine so your roadmap adapts to your schedule.</p>
+        <div class="week-cards" id="weekCards"></div>
+      </div>
+
       <div class="profile-section">
         <h3>Preferences</h3>
         <div class="toggle-row">
@@ -2285,7 +2462,16 @@
         sevenDayStreak: false,
         tenTasks: false,
         firstWeek: false,
-      }
+      },
+      weekData: [
+        { type: 'free', hours: 6 },     // Sun
+        { type: 'college', hours: 4 },  // Mon
+        { type: 'college', hours: 4 },  // Tue
+        { type: 'college', hours: 4 },  // Wed
+        { type: 'college', hours: 4 },  // Thu
+        { type: 'college', hours: 4 },  // Fri
+        { type: 'free', hours: 6 },     // Sat
+      ]
     };
   }
 
@@ -2309,6 +2495,37 @@
   }
   function pluralize(n, s) {
     return n + ' ' + s + (n !== 1 ? 's' : '');
+  }
+
+  const DAY_TYPE_CONFIG = {
+    college: { icon: '🎓', label: 'College Day', color: '#6B7280', bg: 'rgba(107,114,128,0.12)' },
+    free:    { icon: '📖', label: 'Free Day',    color: '#6366F1', bg: 'rgba(99,102,241,0.12)' },
+    partial: { icon: '⚡', label: 'Partial Day',  color: '#F59E0B', bg: 'rgba(245,158,11,0.12)' },
+    off:     { icon: '😴', label: 'Off',          color: '#EF4444', bg: 'rgba(239,68,68,0.12)' },
+  };
+  const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const DAY_TYPES = ['college','free','partial','off'];
+
+  function getWeekDates() {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7));
+    const dates = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      dates.push(d.toISOString().split('T')[0]);
+    }
+    return dates;
+  }
+
+  function getDayTypeInfo(dateStr) {
+    const d = new Date(dateStr);
+    const weekday = d.getDay();
+    const entry = state.weekData && state.weekData[weekday];
+    if (!entry) return { ...DAY_TYPE_CONFIG.free, hours: 4, type: 'free', weekday };
+    return { ...DAY_TYPE_CONFIG[entry.type] || DAY_TYPE_CONFIG.free, hours: entry.hours, type: entry.type, weekday };
   }
 
   function formatTimeDisplay(hhmm) {
@@ -2468,14 +2685,14 @@
   }
 
   // ---------- Roadmap Generation ----------
-  async function generateRoadmapViaGroq(goal, level, hours, deadline, commitments) {
+  async function generateRoadmapViaGroq(goal, level, hours, deadline, commitments, weekData) {
     if (!goal || !deadline) return null;
-    console.log('[generateRoadmapViaGroq] Calling /.netlify/functions/generate-roadmap with:', { goal, level, hours, deadline, commitments });
+    console.log('[generateRoadmapViaGroq] Calling /.netlify/functions/generate-roadmap with:', { goal, level, hours, deadline, commitments, weekData });
 
     const resp = await fetch('/.netlify/functions/generate-roadmap', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ goal, level, hours, deadline, commitments })
+      body: JSON.stringify({ goal, level, hours, deadline, commitments, weekData })
     });
     console.log('[generateRoadmapViaGroq] Response status:', resp.status);
     if (!resp.ok) {
@@ -2495,7 +2712,7 @@
   }
 
   // ---------- Fallback: algorithmic generation ----------
-  function generateRoadmapLocal(goal, level, hours, deadline, commitments) {
+  function generateRoadmapLocal(goal, level, hours, deadline, commitments, weekData) {
     if (!goal || !deadline) return null;
 
     const totalDays = Math.max(daysBetween(todayStr(), deadline), 1);
@@ -2668,9 +2885,26 @@
       if (phaseDays <= 0) return;
       const days = [];
       for (let d = 0; d < phaseDays && dayIndex < totalDays; d++) {
-        const numTasks = Math.min(maxTasksPerDay, Math.max(2, Math.round(hours * (0.4 + Math.random() * 0.3))));
+        const date = addDays(todayStr(), dayIndex);
+        const weekday = new Date(date).getDay();
+        const dayEntry = (weekData && weekData[weekday]) || { type: 'free', hours: 4 };
+        const availHours = dayEntry.hours;
+        let numTasks;
+        if (availHours <= 0) {
+          numTasks = 0;
+        } else if (availHours <= 1) {
+          numTasks = 1 + (Math.random() < 0.4 ? 1 : 0);
+        } else if (availHours <= 2) {
+          numTasks = 2 + (Math.random() < 0.5 ? 1 : 0);
+        } else if (availHours <= 4) {
+          numTasks = Math.min(maxTasksPerDay, Math.max(2, Math.round(availHours * (0.6 + Math.random() * 0.2))));
+        } else {
+          numTasks = Math.min(maxTasksPerDay, Math.max(3, Math.round(availHours * (0.5 + Math.random() * 0.2))));
+        }
+        const maxTotalMins = availHours * 60;
         const tasks = [];
         const usedIndices = new Set();
+        let totalMins = 0;
         for (let t = 0; t < numTasks; t++) {
           let idx = Math.floor(Math.random() * pool.length);
           let attempts = 0;
@@ -2679,8 +2913,13 @@
           const task = { ...pool[idx] };
           if (level === 'beginner') task.time = Math.max(15, Math.round(task.time * 0.8));
           else if (level === 'almost-there') task.time = Math.min(60, Math.round(task.time * 1.2));
+          if (totalMins + task.time > maxTotalMins) {
+            task.time = Math.max(15, maxTotalMins - totalMins);
+          }
           task.done = false;
           tasks.push(task);
+          totalMins += task.time;
+          if (totalMins >= maxTotalMins) break;
         }
         days.push({ day: dayIndex, date: addDays(todayStr(), dayIndex), tasks });
         dayIndex++;
@@ -2918,14 +3157,14 @@
       genLabel.textContent = 'Calling AI...';
       roadmap = await generateRoadmapViaGroq(
         state.goal, state.currentLevel, state.hoursPerDay,
-        state.deadline, state.commitments
+        state.deadline, state.commitments, state.weekData
       ).catch(() => null);
       if (!roadmap) {
         genLabel.textContent = 'Using local planner...';
         await new Promise(r => setTimeout(r, 600));
         roadmap = generateRoadmapLocal(
           state.goal, state.currentLevel, state.hoursPerDay,
-          state.deadline, state.commitments
+          state.deadline, state.commitments, state.weekData
         );
       }
       state.roadmap = roadmap;
@@ -2951,7 +3190,7 @@
       await new Promise(r => setTimeout(r, 400));
       state.roadmap = generateRoadmapLocal(
         state.goal, state.currentLevel, state.hoursPerDay,
-        state.deadline, state.commitments
+        state.deadline, state.commitments, state.weekData
       );
       populateTasksFromRoadmap();
       state.onboarded = true;
@@ -3049,6 +3288,16 @@
     document.getElementById('homeDate').textContent = now.toLocaleDateString('en-US', {
       weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
     });
+
+    // Day-type pill
+    const dayInfo = getDayTypeInfo(todayStr());
+    const pill = document.getElementById('homeDayPill');
+    if (pill) {
+      pill.textContent = `${dayInfo.icon} ${dayInfo.label} · ${dayInfo.hours}hr available`;
+      pill.style.background = dayInfo.bg;
+      pill.style.color = dayInfo.color;
+      pill.style.display = dayInfo.hours > 0 ? 'inline-flex' : 'none';
+    }
 
     // Progress ring
     const { done, total } = getTotalDone();
@@ -3165,9 +3414,11 @@
       lastPhase = day.phaseName;
 
       const dotClass = isToday ? 'dot today' : done ? 'dot done' : 'dot';
+      const dayInfo = getDayTypeInfo(day.date);
+      const dotBg = done ? 'var(--success)' : isToday ? 'var(--accent)' : (dayInfo.color || 'var(--primary)');
 
       html += `<div class="day-node" data-day-idx="${absIdx}">
-        <div class="${dotClass}"></div>
+        <div class="${dotClass}" style="background:${dotBg};${isToday ? '' : ''}"></div>
         <div class="day-card">
           <div class="day-label">Day ${absIdx + 1} — ${formatDate(day.date)}</div>
           <div class="day-sub">${day.phaseName} · ${day.tasks.length} tasks</div>
@@ -3516,6 +3767,83 @@
   }
 
   // ---------- Profile ----------
+  // ---------- My Week ----------
+  function renderWeekCards() {
+    console.log('[MyWeek] renderWeekCards called');
+    const container = document.getElementById('weekCards');
+    if (!container) { console.warn('[MyWeek] #weekCards not found'); return; }
+    if (!state.weekData) { console.warn('[MyWeek] state.weekData is missing'); return; }
+    const dates = getWeekDates();
+    const today = todayStr();
+    const CIRC = 2 * Math.PI * 16;
+
+    container.innerHTML = dates.map((dateStr, i) => {
+      const d = new Date(dateStr);
+      const weekday = d.getDay();
+      const entry = state.weekData[weekday];
+      if (!entry) { console.warn('[MyWeek] No entry for weekday', weekday); return ''; }
+      const cfg = DAY_TYPE_CONFIG[entry.type];
+      const isToday = dateStr === today;
+      const capacity = entry.hours / 8;
+      const dashOffset = CIRC * (1 - capacity);
+
+      return `<div class="week-card${isToday ? ' today' : ''}">
+        ${isToday ? '<div class="wc-today-badge">Today</div>' : ''}
+        <div class="wc-dayname">${DAY_NAMES[weekday]}</div>
+        <div class="wc-date">${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+        <div class="wc-ring-wrap">
+          <svg viewBox="0 0 40 40">
+            <circle class="wc-ring-bg" cx="20" cy="20" r="16"/>
+            <circle class="wc-ring-fill" cx="20" cy="20" r="16"
+              style="stroke:${cfg.color};stroke-dasharray:${CIRC};stroke-dashoffset:${dashOffset}"/>
+          </svg>
+          <div class="wc-ring-pct" style="color:${cfg.color}">${entry.hours}h</div>
+        </div>
+        <div class="wc-type-selector">
+          ${DAY_TYPES.map(t => {
+            const tc = DAY_TYPE_CONFIG[t];
+            const active = t === entry.type;
+            return `<button class="${active ? 'active' : ''}" data-weekday="${weekday}" data-type="${t}"
+              style="${active ? `background:${tc.color};border-color:${tc.color};color:white` : `color:${tc.color};border-color:${tc.color}`}">
+              <span class="wc-type-icon">${tc.icon}</span>
+            </button>`;
+          }).join('')}
+        </div>
+        <div class="wc-stepper">
+          <button data-weekday="${weekday}" data-dir="minus">−</button>
+          <div><span class="wc-hours" style="color:${cfg.color}">${entry.hours}</span> <span class="wc-hours-label">hrs</span></div>
+          <button data-weekday="${weekday}" data-dir="plus">+</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    container.querySelectorAll('.wc-type-selector button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const wd = parseInt(btn.dataset.weekday);
+        const type = btn.dataset.type;
+        state.weekData[wd].type = type;
+        saveState();
+        renderWeekCards();
+        renderHome();
+        renderRoadmap();
+      });
+    });
+
+    container.querySelectorAll('.wc-stepper button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const wd = parseInt(btn.dataset.weekday);
+        const dir = btn.dataset.dir;
+        const cur = state.weekData[wd].hours;
+        const next = dir === 'plus' ? Math.min(8, cur + 1) : Math.max(0, cur - 1);
+        state.weekData[wd].hours = next;
+        saveState();
+        renderWeekCards();
+        renderHome();
+        renderRoadmap();
+      });
+    });
+  }
+
   function renderProfile() {
     const initial = (state.name || 'M')[0].toUpperCase();
     document.getElementById('profileAvatar').textContent = initial;
@@ -3528,6 +3856,8 @@
 
     document.getElementById('notifToggle').classList.toggle('on', state.notifications);
     document.getElementById('darkToggle').classList.toggle('on', state.darkMode);
+
+    renderWeekCards();
   }
 
   // ---------- Streak ----------
@@ -4056,12 +4386,12 @@
       try {
         let roadmap = await generateRoadmapViaGroq(
           state.goal, state.currentLevel, state.hoursPerDay,
-          state.deadline, state.commitments
+          state.deadline, state.commitments, state.weekData
       ).catch((err) => { console.error('[generateRoadmapViaGroq] Groq call failed, falling back to local:', err); return null; });
         if (!roadmap) {
           roadmap = generateRoadmapLocal(
             state.goal, state.currentLevel, state.hoursPerDay,
-            state.deadline, state.commitments
+            state.deadline, state.commitments, state.weekData
           );
         }
         state.roadmap = roadmap;
@@ -4074,7 +4404,7 @@
         console.error(err);
         state.roadmap = generateRoadmapLocal(
           state.goal, state.currentLevel, state.hoursPerDay,
-          state.deadline, state.commitments
+          state.deadline, state.commitments, state.weekData
         );
         populateTasksFromRoadmap();
         saveState();
