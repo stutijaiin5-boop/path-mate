@@ -2470,17 +2470,21 @@
   // ---------- Roadmap Generation ----------
   async function generateRoadmapViaGroq(goal, level, hours, deadline, commitments) {
     if (!goal || !deadline) return null;
+    console.log('[generateRoadmapViaGroq] Calling /.netlify/functions/generate-roadmap with:', { goal, level, hours, deadline, commitments });
 
     const resp = await fetch('/.netlify/functions/generate-roadmap', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ goal, level, hours, deadline, commitments })
     });
+    console.log('[generateRoadmapViaGroq] Response status:', resp.status);
     if (!resp.ok) {
       const err = await resp.json().catch(() => ({}));
+      console.error('[generateRoadmapViaGroq] Error response:', err);
       throw new Error(err.error || `Roadmap generation failed: ${resp.status}`);
     }
     const parsed = await resp.json();
+    console.log('[generateRoadmapViaGroq] Parsed roadmap:', parsed);
 
     // Validate basic structure
     if (!parsed.phases || !Array.isArray(parsed.phases) || parsed.phases.length === 0) {
@@ -4053,7 +4057,7 @@
         let roadmap = await generateRoadmapViaGroq(
           state.goal, state.currentLevel, state.hoursPerDay,
           state.deadline, state.commitments
-        ).catch(() => null);
+      ).catch((err) => { console.error('[generateRoadmapViaGroq] Groq call failed, falling back to local:', err); return null; });
         if (!roadmap) {
           roadmap = generateRoadmapLocal(
             state.goal, state.currentLevel, state.hoursPerDay,
