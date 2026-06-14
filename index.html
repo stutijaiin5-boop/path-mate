@@ -2247,28 +2247,19 @@
 
   const APP_KEY = 'pathmate_data';
 
-  // ---------- Groq API ----------
-  const GROQ_API_KEY = ''; // Add your Groq API key here (optional — app works without it)
-  const GROQ_MODEL = 'llama-3.3-70b-versatile';
-  const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-
-  async function callGroqAPI(messages) {
-    const resp = await fetch(GROQ_URL, {
+  // ---------- Groq API (via Netlify function) ----------
+  async function callGroqChat(messages) {
+    const resp = await fetch('/.netlify/functions/groq-chat', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GROQ_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        messages,
-        temperature: 0.7,
-        max_tokens: 4096,
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages })
     });
-    if (!resp.ok) throw new Error(`Groq API error: ${resp.status}`);
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error || `Groq API error: ${resp.status}`);
+    }
     const data = await resp.json();
-    return data.choices[0].message.content;
+    return data.reply;
   }
 
   // ---------- Default State ----------
@@ -2479,60 +2470,17 @@
   // ---------- Roadmap Generation ----------
   async function generateRoadmapViaGroq(goal, level, hours, deadline, commitments) {
     if (!goal || !deadline) return null;
-    const totalDays = Math.max(daysBetween(todayStr(), deadline), 1);
 
-    const systemPrompt = `You are a student goal-planning expert. Generate a structured day-wise roadmap.
-
-Return ONLY valid JSON with this exact structure (no markdown, no explanation):
-{
-  "phases": [
-    {
-      "name": "Phase name",
-      "days": [
-        {
-          "day": 0,
-          "date": "YYYY-MM-DD",
-          "tasks": [
-            {
-              "title": "Task title",
-              "time": 30,
-              "cat": "Study|Practice|Networking|Personal",
-              "done": false
-            }
-          ]
-        }
-      ]
+    const resp = await fetch('/.netlify/functions/generate-roadmap', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ goal, level, hours, deadline, commitments })
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error || `Roadmap generation failed: ${resp.status}`);
     }
-  ]
-}
-
-Rules:
-- The first day (day 0) starts with today's date: "${todayStr()}".
-- Generate exactly ${totalDays} days (day 0 through day ${totalDays - 1}).
-- Each day should have 2-5 tasks depending on available hours.
-- Group days into meaningful phases (3-6 phases total depending on duration).
-- Tasks must be specific, actionable, and relevant to the user's goal.
-- Each task has a "cat" field: one of Study, Practice, Networking, Personal.
-- Time estimates in minutes (15-60 range).
-- All tasks start with "done": false.
-- Dates must be consecutive (YYYY-MM-DD format).`;
-
-    const userPrompt = `User's goal: "${goal}"
-Current level: ${level}
-Hours available per day: ${hours}
-Target deadline: ${deadline}
-Current commitments: ${commitments.length > 0 ? commitments.join(', ') : 'None'}
-
-Generate the complete ${totalDays}-day roadmap as JSON.`;
-
-    const raw = await callGroqAPI([
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt }
-    ]);
-
-    // Strip any markdown fences
-    const cleaned = raw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
-    const parsed = JSON.parse(cleaned);
+    const parsed = await resp.json();
 
     // Validate basic structure
     if (!parsed.phases || !Array.isArray(parsed.phases) || parsed.phases.length === 0) {
@@ -2963,15 +2911,11 @@ Generate the complete ${totalDays}-day roadmap as JSON.`;
 
     try {
       let roadmap;
-      if (GROQ_API_KEY !== 'YOUR_GROQ_API_KEY') {
-        genLabel.textContent = 'Calling AI...';
-        roadmap = await generateRoadmapViaGroq(
-          state.goal, state.currentLevel, state.hoursPerDay,
-          state.deadline, state.commitments
-        );
-      } else {
-        roadmap = null;
-      }
+      genLabel.textContent = 'Calling AI...';
+      roadmap = await generateRoadmapViaGroq(
+        state.goal, state.currentLevel, state.hoursPerDay,
+        state.deadline, state.commitments
+      ).catch(() => null);
       if (!roadmap) {
         genLabel.textContent = 'Using local planner...';
         await new Promise(r => setTimeout(r, 600));
@@ -3888,7 +3832,7 @@ Generate the complete ${totalDays}-day roadmap as JSON.`;
 
     async function parseTaskWithGroq(transcript) {
       const systemPrompt = `Extract a task from this sentence. Return ONLY valid JSON with these fields: title (string), time (string in HH:MM AM/PM format, or null if not mentioned), category (one of: Study, Personal, Practice, Networking — pick the best fit), duration (number in minutes, estimate if not mentioned). Sentence: ${transcript}`;
-      const reply = await callGroqAPI([
+      const reply = await callGroqChat([
         { role: 'system', content: systemPrompt }
       ]);
       const cleaned = reply.replace(/```json\s*/gi, '').replace(/```\s*$/g, '').trim();
@@ -4106,13 +4050,10 @@ Generate the complete ${totalDays}-day roadmap as JSON.`;
     document.getElementById('regenerateRoadmapBtn').addEventListener('click', async () => {
       showToast('Generating new roadmap...');
       try {
-        let roadmap;
-        if (GROQ_API_KEY !== 'YOUR_GROQ_API_KEY') {
-          roadmap = await generateRoadmapViaGroq(
-            state.goal, state.currentLevel, state.hoursPerDay,
-            state.deadline, state.commitments
-          );
-        }
+        let roadmap = await generateRoadmapViaGroq(
+          state.goal, state.currentLevel, state.hoursPerDay,
+          state.deadline, state.commitments
+        ).catch(() => null);
         if (!roadmap) {
           roadmap = generateRoadmapLocal(
             state.goal, state.currentLevel, state.hoursPerDay,
