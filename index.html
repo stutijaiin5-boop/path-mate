@@ -2660,17 +2660,26 @@
       firebaseAuth.onAuthStateChanged(user => {
         currentUser = user;
         if (user) {
-          document.getElementById('authScreen').classList.remove('auth-active');
-          document.getElementById('authScreen').classList.remove('active');
-          document.querySelector('.app-container').style.display = '';
+          showAppAfterAuth();
         } else {
-          document.getElementById('authScreen').classList.add('active');
-          document.querySelector('.app-container').style.display = 'none';
+          showAuthScreen();
         }
       });
     } catch (err) {
-      console.warn('[Auth] Firebase init failed:', err);
+      console.warn('[Auth] Firebase not configured — running without auth:', err);
+      showAppAfterAuth();
     }
+  }
+
+  function showAppAfterAuth() {
+    document.getElementById('authScreen').classList.remove('auth-active');
+    document.getElementById('authScreen').classList.remove('active');
+    document.querySelector('.app-container').style.display = '';
+  }
+
+  function showAuthScreen() {
+    document.getElementById('authScreen').classList.add('active');
+    document.querySelector('.app-container').style.display = 'none';
   }
 
   function getAuthMode() {
@@ -2678,6 +2687,7 @@
   }
 
   async function handleAuth() {
+    if (!firebaseAuth) { return; }
     const email = document.getElementById('authEmail').value.trim();
     const password = document.getElementById('authPassword').value;
     const errorEl = document.getElementById('authError');
@@ -2702,6 +2712,7 @@
   }
 
   async function handleGoogleAuth() {
+    if (!firebaseAuth) return;
     const errorEl = document.getElementById('authError');
     const btn = document.getElementById('authGoogleBtn');
     errorEl.classList.add('hidden');
@@ -2719,7 +2730,7 @@
   }
 
   function signOut() {
-    firebaseAuth.signOut();
+    if (firebaseAuth) firebaseAuth.signOut();
   }
 
   // ---------- Groq API (via Netlify function) ----------
