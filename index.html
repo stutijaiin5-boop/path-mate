@@ -2003,11 +2003,186 @@
         border-right: 1px solid var(--border);
       }
     }
+
+    /* ===== AUTH SCREEN ===== */
+    .auth-active.active {
+      display: flex !important;
+    }
+    #authScreen {
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      background: var(--bg-body);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      overflow-y: auto;
+    }
+    .auth-container {
+      width: 100%;
+      max-width: 360px;
+      padding: 32px 24px;
+      text-align: center;
+    }
+    .auth-logo {
+      margin-bottom: 12px;
+    }
+    .auth-title {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0 0 4px;
+    }
+    .auth-sub {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin: 0 0 28px;
+    }
+    .auth-toggle {
+      display: flex;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .auth-toggle-btn {
+      flex: 1;
+      padding: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: inherit;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .auth-toggle-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+    .auth-error {
+      background: rgba(239,68,68,0.1);
+      color: #EF4444;
+      font-size: 0.8rem;
+      padding: 8px 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    .auth-field {
+      margin-bottom: 14px;
+      text-align: left;
+    }
+    .auth-field label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+    .auth-field input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+      box-sizing: border-box;
+    }
+    .auth-field input:focus {
+      border-color: var(--primary);
+    }
+    .auth-submit {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      font-size: 0.95rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      margin-top: 4px;
+    }
+    .auth-submit:active { opacity: 0.8; }
+    .auth-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+    }
+    .auth-divider::before,
+    .auth-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .auth-google {
+      width: 100%;
+      padding: 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: border-color 0.2s;
+    }
+    .auth-google:active { border-color: var(--primary); }
+    .auth-logout-btn {
+      width: 100%;
+      padding: 12px;
+      border: 1.5px solid #EF4444;
+      border-radius: 12px;
+      background: transparent;
+      color: #EF4444;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .auth-logout-btn:active {
+      background: rgba(239,68,68,0.1);
+    }
+    .auth-loading {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2.5px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
 
-<div class="app-container" id="app">
+<div class="app-container" id="app" style="display:none">
 
   <!-- ===== SVG GRADIENTS ===== -->
   <svg style="position:absolute;width:0;height:0;">
@@ -2018,6 +2193,47 @@
       </linearGradient>
     </defs>
   </svg>
+
+  <!-- ===== AUTH ===== -->
+  <div id="authScreen" class="screen auth-active active">
+    <div class="auth-container">
+      <div class="auth-logo">
+        <svg width="56" height="56" viewBox="0 0 200 200" fill="none">
+          <path d="M40 180 Q60 140 50 110 Q40 80 70 60 Q100 40 120 50 Q140 60 150 40 Q160 20 180 25" stroke="#6C5CE7" stroke-width="6" stroke-linecap="round" fill="none"/>
+          <circle cx="100" cy="100" r="40" stroke="#FF8C66" stroke-width="4" fill="none" stroke-dasharray="251" stroke-dashoffset="62.8"/>
+          <polyline points="80,100 95,115 120,85" stroke="#FF8C66" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+      </div>
+      <h1 class="auth-title">PathMate</h1>
+      <p class="auth-sub">Your personal goal execution coach</p>
+
+      <div class="auth-toggle">
+        <button class="auth-toggle-btn active" id="authToggleSignIn">Sign In</button>
+        <button class="auth-toggle-btn" id="authToggleSignUp">Sign Up</button>
+      </div>
+
+      <div id="authError" class="auth-error hidden"></div>
+
+      <div class="auth-form">
+        <div class="auth-field">
+          <label>Email</label>
+          <input id="authEmail" type="email" placeholder="you@example.com" autocomplete="email" />
+        </div>
+        <div class="auth-field">
+          <label>Password</label>
+          <input id="authPassword" type="password" placeholder="At least 6 characters" autocomplete="current-password" />
+        </div>
+        <button class="auth-submit" id="authSubmitBtn">Sign In</button>
+      </div>
+
+      <div class="auth-divider"><span>or</span></div>
+
+      <button class="auth-google" id="authGoogleBtn">
+        <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="m6.306 14.691 6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>
+        Continue with Google
+      </button>
+    </div>
+  </div>
 
   <!-- ===== ONBOARDING ===== -->
   <div id="onboardingScreen" class="screen onboarding-active active">
@@ -2319,6 +2535,10 @@
           PathMate helps students break down big goals into daily actionable steps. Built with ❤️ for goal-getters.
         </div>
       </div>
+
+      <div class="profile-section">
+        <button class="auth-logout-btn" id="logoutBtn">🚪 Sign Out</button>
+      </div>
     </div>
   </div>
 
@@ -2423,6 +2643,84 @@
   // ============================================================
 
   const APP_KEY = 'pathmate_data';
+
+  // ---------- Firebase Auth ----------
+  let firebaseApp = null;
+  let firebaseAuth = null;
+  let currentUser = null;
+
+  async function initFirebase() {
+    try {
+      const resp = await fetch('/.netlify/functions/firebase-config');
+      if (!resp.ok) throw new Error('Failed to fetch Firebase config');
+      const config = await resp.json();
+      if (!config.apiKey) throw new Error('Firebase config empty — set env vars');
+      firebaseApp = firebase.initializeApp(config);
+      firebaseAuth = firebaseApp.auth();
+      firebaseAuth.onAuthStateChanged(user => {
+        currentUser = user;
+        if (user) {
+          document.getElementById('authScreen').classList.remove('auth-active');
+          document.getElementById('authScreen').classList.remove('active');
+          document.querySelector('.app-container').style.display = '';
+        } else {
+          document.getElementById('authScreen').classList.add('active');
+          document.querySelector('.app-container').style.display = 'none';
+        }
+      });
+    } catch (err) {
+      console.warn('[Auth] Firebase init failed:', err);
+    }
+  }
+
+  function getAuthMode() {
+    return document.getElementById('authToggleSignIn').classList.contains('active') ? 'signin' : 'signup';
+  }
+
+  async function handleAuth() {
+    const email = document.getElementById('authEmail').value.trim();
+    const password = document.getElementById('authPassword').value;
+    const errorEl = document.getElementById('authError');
+    const btn = document.getElementById('authSubmitBtn');
+    errorEl.classList.add('hidden');
+    if (!email || !password) { errorEl.textContent = 'Please fill in all fields'; errorEl.classList.remove('hidden'); return; }
+    if (password.length < 6) { errorEl.textContent = 'Password must be at least 6 characters'; errorEl.classList.remove('hidden'); return; }
+    btn.disabled = true;
+    btn.innerHTML = '<span class="auth-loading"></span> Please wait...';
+    try {
+      if (getAuthMode() === 'signin') {
+        await firebaseAuth.signInWithEmailAndPassword(email, password);
+      } else {
+        await firebaseAuth.createUserWithEmailAndPassword(email, password);
+      }
+    } catch (err) {
+      errorEl.textContent = err.message.replace('Firebase: ', '').replace(/\(.*\)/, '');
+      errorEl.classList.remove('hidden');
+    }
+    btn.disabled = false;
+    btn.textContent = getAuthMode() === 'signin' ? 'Sign In' : 'Sign Up';
+  }
+
+  async function handleGoogleAuth() {
+    const errorEl = document.getElementById('authError');
+    const btn = document.getElementById('authGoogleBtn');
+    errorEl.classList.add('hidden');
+    btn.disabled = true;
+    try {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      await firebaseAuth.signInWithPopup(provider);
+    } catch (err) {
+      if (err.code !== 'auth/popup-closed-by-user') {
+        errorEl.textContent = err.message.replace('Firebase: ', '').replace(/\(.*\)/, '');
+        errorEl.classList.remove('hidden');
+      }
+    }
+    btn.disabled = false;
+  }
+
+  function signOut() {
+    firebaseAuth.signOut();
+  }
 
   // ---------- Groq API (via Netlify function) ----------
   async function callGroqChat(messages) {
@@ -3937,6 +4235,34 @@
   // ============================================================
 
   document.addEventListener('DOMContentLoaded', () => {
+    // Initialize Firebase auth
+    initFirebase();
+
+    // Auth UI events
+    document.getElementById('authToggleSignIn').addEventListener('click', () => {
+      document.getElementById('authToggleSignIn').classList.add('active');
+      document.getElementById('authToggleSignUp').classList.remove('active');
+      document.getElementById('authSubmitBtn').textContent = 'Sign In';
+      document.getElementById('authPassword').autocomplete = 'current-password';
+      document.getElementById('authError').classList.add('hidden');
+    });
+    document.getElementById('authToggleSignUp').addEventListener('click', () => {
+      document.getElementById('authToggleSignUp').classList.add('active');
+      document.getElementById('authToggleSignIn').classList.remove('active');
+      document.getElementById('authSubmitBtn').textContent = 'Sign Up';
+      document.getElementById('authPassword').autocomplete = 'new-password';
+      document.getElementById('authError').classList.add('hidden');
+    });
+    document.getElementById('authSubmitBtn').addEventListener('click', handleAuth);
+    document.getElementById('authGoogleBtn').addEventListener('click', handleGoogleAuth);
+    document.getElementById('authPassword').addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleAuth();
+    });
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      signOut();
+      showToast('Signed out');
+    });
+
     const wasLoaded = loadState();
 
     if (wasLoaded && state.onboarded) {
@@ -4478,5 +4804,7 @@
     }
   });
 </script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 </body>
 </html>
