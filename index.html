@@ -1919,6 +1919,64 @@
       font-weight: 600;
       cursor: pointer;
     }
+    .modal-sheet .modal-btn:active { opacity: 0.8; }
+
+    /* Repeat chips */
+    .repeat-section {
+      margin: 10px 0 14px;
+    }
+    .repeat-section label {
+      display: block;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    .repeat-presets {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .repeat-preset {
+      padding: 5px 10px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .repeat-preset:active { border-color: var(--primary); color: var(--primary); }
+    .repeat-days {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+    .repeat-day {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      background: var(--bg);
+      color: var(--text-secondary);
+      font-size: 0.7rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .repeat-day.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+    .repeat-day:active { opacity: 0.7; }
 
     .mic-btn {
       width: 44px;
@@ -2693,6 +2751,24 @@
             <option value="Networking">Networking</option>
             <option value="Personal">Personal</option>
           </select>
+        </div>
+      </div>
+
+      <div class="repeat-section">
+        <label>Repeat on</label>
+        <div class="repeat-presets">
+          <button class="repeat-preset" data-preset="weekdays">Weekdays</button>
+          <button class="repeat-preset" data-preset="weekends">Weekends</button>
+          <button class="repeat-preset" data-preset="everyday">Every day</button>
+        </div>
+        <div class="repeat-days" id="repeatDays">
+          <button class="repeat-day" data-weekday="1">Mo</button>
+          <button class="repeat-day" data-weekday="2">Tu</button>
+          <button class="repeat-day" data-weekday="3">We</button>
+          <button class="repeat-day" data-weekday="4">Th</button>
+          <button class="repeat-day" data-weekday="5">Fr</button>
+          <button class="repeat-day" data-weekday="6">Sa</button>
+          <button class="repeat-day" data-weekday="0">Su</button>
         </div>
       </div>
 
@@ -3986,7 +4062,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
         <div class="tci-body">
-          <div class="tci-title${td}">${t.custom ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;opacity:0.5"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>' : ''}<span>${t.title}</span></div>
+          <div class="tci-title${td}">${t.custom ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;opacity:0.5"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>' : ''}<span>${t.title}</span>${t._repeatGroupId ? ' <span style="font-size:0.7rem;opacity:0.5">🔁</span>' : ''}</div>
           <div class="tci-meta">
             ${timeStr ? `<span>🕐 ${timeStr}</span>` : ''}
             <span>${t.time || 30} min</span>
@@ -4560,10 +4636,37 @@
     // ------- Add / Edit task -------
     let editingTaskIdx = -1;
     let editingTaskDate = '';
+    let editingRepeatGroupId = null;
+    let selectedRepeatDays = [];
+
+    function resetRepeatSelection() {
+      selectedRepeatDays = [];
+      document.querySelectorAll('#repeatDays .repeat-day').forEach(b => b.classList.remove('active'));
+    }
+
+    function getRepeatGroupId() {
+      return selectedRepeatDays.length > 0 ? 'rg_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6) : null;
+    }
+
+    function collectTaskDateTargets(baseDate) {
+      if (selectedRepeatDays.length === 0) return [baseDate];
+      const base = new Date(baseDate);
+      const dates = [];
+      for (let i = 0; i < 28; i++) {
+        const d = new Date(base);
+        d.setDate(base.getDate() + i);
+        const wd = d.getDay();
+        if (selectedRepeatDays.includes(wd)) {
+          dates.push(d.toISOString().split('T')[0]);
+        }
+      }
+      return dates;
+    }
 
     document.getElementById('addTaskFab').addEventListener('click', () => {
       editingTaskIdx = -1;
       editingTaskDate = '';
+      editingRepeatGroupId = null;
       document.getElementById('addTaskModalTitle').textContent = 'Add Custom Task';
       document.getElementById('modalAddTaskBtn').textContent = 'Add to My To-Dos';
       document.getElementById('modalTaskTitle').value = '';
@@ -4582,12 +4685,33 @@
       );
       document.getElementById('modalDurationDisplay').textContent = 'Duration: —';
       document.getElementById('modalTimeError').style.display = 'none';
+      resetRepeatSelection();
       document.getElementById('addTaskModal').classList.add('show');
     });
     document.getElementById('addTaskModal').addEventListener('click', (e) => {
       if (e.target === e.currentTarget) {
         document.getElementById('addTaskModal').classList.remove('show');
       }
+    });
+    // Repeat day chips
+    document.querySelectorAll('#repeatDays .repeat-day').forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.classList.toggle('active');
+        selectedRepeatDays = [];
+        document.querySelectorAll('#repeatDays .repeat-day.active').forEach(b => selectedRepeatDays.push(parseInt(b.dataset.weekday)));
+      });
+    });
+    // Repeat presets
+    document.querySelectorAll('.repeat-preset').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const preset = btn.dataset.preset;
+        const map = { weekdays: [1,2,3,4,5], weekends: [0,6], everyday: [0,1,2,3,4,5,6] };
+        const days = map[preset] || [];
+        document.querySelectorAll('#repeatDays .repeat-day').forEach(b => {
+          b.classList.toggle('active', days.includes(parseInt(b.dataset.weekday)));
+        });
+        selectedRepeatDays = [...days];
+      });
     });
     document.getElementById('modalAddTaskBtn').addEventListener('click', () => {
       const title = document.getElementById('modalTaskTitle').value.trim();
@@ -4619,8 +4743,30 @@
       }
       const dayTasks = getDayTasks(tasksViewDate);
 
-      if (editingTaskIdx >= 0 && editingTaskDate === tasksViewDate) {
-        // Edit mode — update existing task
+      if (editingRepeatGroupId) {
+        // Edit all days — update all tasks with same _repeatGroupId
+        Object.keys(state.dayTasks).forEach(d => {
+          const dayTasksArr = getDayTasks(d);
+          dayTasksArr.forEach(task => {
+            if (task._repeatGroupId === editingRepeatGroupId) {
+              task.title = title;
+              task.category = category;
+              task.time = time;
+              task.timeFrom = timeFrom || undefined;
+              task.timeTo = timeTo || undefined;
+              delete task.scheduledTime;
+              if (selectedRepeatDays.length > 0) {
+                task._repeatDays = selectedRepeatDays;
+              }
+            }
+          });
+        });
+        editingRepeatGroupId = null;
+        editingTaskIdx = -1;
+        editingTaskDate = '';
+        showToast('All repeated tasks updated!');
+      } else if (editingTaskIdx >= 0 && editingTaskDate === tasksViewDate) {
+        // Edit mode — update existing task (single or this-day-only)
         const t = dayTasks[editingTaskIdx];
         if (t) {
           t.title = title;
@@ -4629,22 +4775,36 @@
           t.timeFrom = timeFrom || undefined;
           t.timeTo = timeTo || undefined;
           delete t.scheduledTime;
+          // If it had repeat, break the repeat (remove group)
+          if (t._repeatGroupId) {
+            delete t._repeatGroupId;
+            delete t._repeatDays;
+          }
         }
+        editingRepeatGroupId = null;
         editingTaskIdx = -1;
         editingTaskDate = '';
         showToast('Task updated!');
       } else {
-        // Add mode — create new task
-        dayTasks.push({
-          title,
-          category,
-          time,
-          done: false,
-          custom: true,
-          timeFrom: timeFrom || undefined,
-          timeTo: timeTo || undefined
+        // Add mode — create new task(s)
+        editingRepeatGroupId = null;
+        const targetDates = collectTaskDateTargets(tasksViewDate);
+        const groupId = getRepeatGroupId();
+        targetDates.forEach(date => {
+          const tasks = getDayTasks(date);
+          tasks.push({
+            title,
+            category,
+            time,
+            done: false,
+            custom: true,
+            timeFrom: timeFrom || undefined,
+            timeTo: timeTo || undefined,
+            _repeatGroupId: groupId,
+            _repeatDays: selectedRepeatDays.length > 0 ? selectedRepeatDays : undefined,
+          });
         });
-        showToast('Task added!');
+        showToast(targetDates.length > 1 ? `Task added for ${targetDates.length} days!` : 'Task added!');
       }
       saveState();
       document.getElementById('addTaskModal').classList.remove('show');
@@ -4776,6 +4936,32 @@
       document.getElementById('taskPopup').classList.add('hidden');
     }
 
+    function showConfirm(message, onConfirm, onCancel, confirmLabel, cancelLabel) {
+      const confirmOverlay = document.createElement('div');
+      confirmOverlay.className = 'confirm-overlay';
+      confirmOverlay.innerHTML = `
+        <div class="confirm-box">
+          <h4>${message}</h4>
+          <div class="confirm-actions">
+            <button class="btn-cancel" id="confirmCancel">${cancelLabel || 'Cancel'}</button>
+            <button class="btn-confirm-del" id="confirmDelete">${confirmLabel || 'Yes, Delete'}</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(confirmOverlay);
+      confirmOverlay.querySelector('#confirmCancel').addEventListener('click', () => {
+        confirmOverlay.remove();
+        if (onCancel) onCancel();
+      });
+      confirmOverlay.querySelector('#confirmDelete').addEventListener('click', () => {
+        confirmOverlay.remove();
+        if (onConfirm) onConfirm();
+      });
+      confirmOverlay.addEventListener('click', (e) => {
+        if (e.target === confirmOverlay) confirmOverlay.remove();
+      });
+    }
+
     document.getElementById('popupEdit').addEventListener('click', () => {
       const popup = document.getElementById('taskPopup');
       const taskId = popup._taskId;
@@ -4786,27 +4972,59 @@
       if (!t) return;
       closeTaskPopup();
 
-      document.getElementById('addTaskModalTitle').textContent = 'Edit Task';
-      document.getElementById('modalAddTaskBtn').textContent = 'Save Changes';
-      document.getElementById('modalTaskTitle').value = t.title;
-      document.getElementById('modalTaskCategory').value = t.category;
-      setTimeSelects(
-        document.getElementById('modalTimeFromH'),
-        document.getElementById('modalTimeFromM'),
-        document.getElementById('modalTimeFromA'),
-        t.timeFrom || t.scheduledTime || ''
-      );
-      setTimeSelects(
-        document.getElementById('modalTimeToH'),
-        document.getElementById('modalTimeToM'),
-        document.getElementById('modalTimeToA'),
-        t.timeTo || ''
-      );
-      updateDurationDisplay();
-      document.getElementById('modalTimeError').style.display = 'none';
-      editingTaskIdx = editIdx;
-      editingTaskDate = date;
-      document.getElementById('addTaskModal').classList.add('show');
+      const doEdit = () => {
+        document.getElementById('addTaskModalTitle').textContent = 'Edit Task';
+        document.getElementById('modalAddTaskBtn').textContent = 'Save Changes';
+        document.getElementById('modalTaskTitle').value = t.title;
+        document.getElementById('modalTaskCategory').value = t.category;
+        setTimeSelects(
+          document.getElementById('modalTimeFromH'),
+          document.getElementById('modalTimeFromM'),
+          document.getElementById('modalTimeFromA'),
+          t.timeFrom || t.scheduledTime || ''
+        );
+        setTimeSelects(
+          document.getElementById('modalTimeToH'),
+          document.getElementById('modalTimeToM'),
+          document.getElementById('modalTimeToA'),
+          t.timeTo || ''
+        );
+        updateDurationDisplay();
+        document.getElementById('modalTimeError').style.display = 'none';
+        // Set repeat chips from task's _repeatDays
+        resetRepeatSelection();
+        if (t._repeatDays && Array.isArray(t._repeatDays)) {
+          selectedRepeatDays = [...t._repeatDays];
+          document.querySelectorAll('#repeatDays .repeat-day').forEach(b => {
+            b.classList.toggle('active', selectedRepeatDays.includes(parseInt(b.dataset.weekday)));
+          });
+        }
+        editingTaskIdx = editIdx;
+        editingTaskDate = date;
+        document.getElementById('addTaskModal').classList.add('show');
+      };
+
+      if (t._repeatGroupId) {
+        showConfirm('Edit for all days or just this one?', () => {
+          // "All days"
+          editingRepeatGroupId = t._repeatGroupId;
+          resetRepeatSelection();
+          if (t._repeatDays && Array.isArray(t._repeatDays)) {
+            selectedRepeatDays = [...t._repeatDays];
+            document.querySelectorAll('#repeatDays .repeat-day').forEach(b => {
+              b.classList.toggle('active', selectedRepeatDays.includes(parseInt(b.dataset.weekday)));
+            });
+          }
+          doEdit();
+        }, () => {
+          // "This day only" — break repeat
+          editingRepeatGroupId = null;
+          resetRepeatSelection();
+          doEdit();
+        }, 'All Days', 'This Day Only');
+      } else {
+        doEdit();
+      }
     });
 
     document.getElementById('popupDelete').addEventListener('click', () => {
@@ -4815,27 +5033,28 @@
       const date = popup._taskDate || tasksViewDate;
       closeTaskPopup();
 
-      const confirmOverlay = document.createElement('div');
-      confirmOverlay.className = 'confirm-overlay';
-      confirmOverlay.innerHTML = `
-        <div class="confirm-box">
-          <h4>Delete this task?</h4>
-          <p>This action cannot be undone.</p>
-          <div class="confirm-actions">
-            <button class="btn-cancel" id="confirmCancel">Cancel</button>
-            <button class="btn-confirm-del" id="confirmDelete">Yes, Delete</button>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(confirmOverlay);
-
-      confirmOverlay.querySelector('#confirmCancel').addEventListener('click', () => {
-        confirmOverlay.remove();
-      });
-      confirmOverlay.querySelector('#confirmDelete').addEventListener('click', () => {
+      const doDelete = (allDays) => {
         const tasks = getDayTasks(date);
         const actualIdx = tasks.findIndex(t => t._id === taskId);
-        if (actualIdx === -1) { confirmOverlay.remove(); return; }
+        if (actualIdx === -1) return;
+        const t = tasks[actualIdx];
+        if (allDays && t._repeatGroupId) {
+          // Delete all instances with the same _repeatGroupId
+          const grpId = t._repeatGroupId;
+          Object.keys(state.dayTasks).forEach(d => {
+            const dayTasksArr = getDayTasks(d);
+            for (let i = dayTasksArr.length - 1; i >= 0; i--) {
+              if (dayTasksArr[i]._repeatGroupId === grpId) {
+                dayTasksArr.splice(i, 1);
+              }
+            }
+          });
+          saveState();
+          renderTasks();
+          renderHome();
+          showToast('All repeated tasks deleted');
+          return;
+        }
         const taskEl = document.querySelector(`[data-task-id="${taskId}"]`);
         if (taskEl) {
           taskEl.style.transition = 'opacity 0.3s, transform 0.3s';
@@ -4849,11 +5068,24 @@
           renderHome();
           showToast('Task deleted');
         }, 280);
-        confirmOverlay.remove();
-      });
-      confirmOverlay.addEventListener('click', (e) => {
-        if (e.target === confirmOverlay) confirmOverlay.remove();
-      });
+      };
+
+      const tasks = getDayTasks(date);
+      const actualIdx = tasks.findIndex(t => t._id === taskId);
+      const t = tasks[actualIdx];
+      if (t && t._repeatGroupId) {
+        showConfirm('Delete for all days or just this one?',
+          () => doDelete(true),
+          () => doDelete(false),
+          'All Days', 'This Day Only'
+        );
+      } else {
+        showConfirm('Delete this task?',
+          () => doDelete(false),
+          null,
+          'Yes, Delete', 'Cancel'
+        );
+      }
     });
 
     // ------- Profile settings -------
