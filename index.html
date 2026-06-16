@@ -2719,7 +2719,9 @@
   }
 
   function showAuthScreen() {
-    document.getElementById('authScreen').classList.add('active');
+    const s = document.getElementById('authScreen');
+    s.classList.add('auth-active');
+    s.classList.add('active');
     document.querySelector('.app-container').style.display = 'none';
   }
 
@@ -4311,8 +4313,12 @@
       if (e.key === 'Enter') handleAuth();
     });
     document.getElementById('logoutBtn').addEventListener('click', () => {
-      signOut();
-      showToast('Signed out');
+      if (firebaseAuth) {
+        signOut();
+        showToast('Signed out');
+      } else {
+        showAuthScreen();
+      }
     });
 
     const wasLoaded = loadState();
