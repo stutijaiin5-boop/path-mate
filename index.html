@@ -1551,6 +1551,9 @@
       font-size: 1.5rem;
       color: white;
       font-weight: 700;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
     }
     .profile-info h2 {
       font-size: 1.2rem;
@@ -1664,6 +1667,20 @@
       transition: all 0.2s;
       margin-top: 8px;
     }
+    .profile-save-btn {
+      padding: 10px 18px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--primary);
+      color: white;
+      font-size: 0.8rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity 0.2s;
+    }
+    .profile-save-btn:active { opacity: 0.7; }
     .regenerate-btn:active {
       background: rgba(255,140,102,0.1);
     }
@@ -2099,6 +2116,21 @@
     .auth-field input:focus {
       border-color: var(--primary);
     }
+    .auth-forgot-row {
+      text-align: right;
+      margin: -6px 0 12px;
+    }
+    .auth-forgot-btn {
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-size: 0.78rem;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      padding: 0;
+    }
+    .auth-forgot-btn:active { opacity: 0.7; }
     .auth-submit {
       width: 100%;
       padding: 14px;
@@ -2210,6 +2242,9 @@
       <div class="auth-field">
         <label>Password</label>
         <input id="authPassword" type="password" placeholder="At least 6 characters" autocomplete="current-password" />
+      </div>
+      <div class="auth-forgot-row" id="authForgotRow">
+        <button class="auth-forgot-btn" id="authForgotBtn">Forgot password?</button>
       </div>
       <button class="auth-submit" id="authSubmitBtn">Sign In</button>
     </div>
@@ -2518,10 +2553,26 @@
   <div id="profileScreen" class="screen">
     <div class="screen-content">
       <div class="profile-header">
-        <div class="profile-avatar" id="profileAvatar">M</div>
+        <div class="profile-avatar" id="profileAvatar">
+          <img id="profileAvatarImg" style="display:none;width:100%;height:100%;border-radius:50%;object-fit:cover;" />
+          <span id="profileAvatarInitial">M</span>
+        </div>
         <div class="profile-info">
           <h2 id="profileName">Mate</h2>
           <p id="profileGoal">No goal set yet</p>
+          <p id="profileEmail" style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;"></p>
+          <p id="profileMemberSince" style="font-size:0.65rem;color:var(--text-muted);margin-top:1px;"></p>
+        </div>
+      </div>
+
+      <div class="profile-section" id="profileUserSection" style="display:none;">
+        <h3>👤 Account</h3>
+        <div class="profile-field">
+          <label>Display Name</label>
+          <div style="display:flex;gap:8px;">
+            <input id="profileDisplayNameInput" type="text" placeholder="Your display name" style="flex:1;" />
+            <button class="profile-save-btn" id="profileSaveNameBtn">Save</button>
+          </div>
         </div>
       </div>
 
@@ -2780,6 +2831,21 @@
 
   function signOut() {
     if (firebaseAuth) firebaseAuth.signOut();
+  }
+
+  async function sendPasswordReset() {
+    if (!firebaseAuth) return;
+    const email = document.getElementById('authEmail').value.trim();
+    const errorEl = document.getElementById('authError');
+    if (!email) { errorEl.textContent = 'Enter your email address first'; errorEl.classList.remove('hidden'); return; }
+    try {
+      await firebaseAuth.sendPasswordResetEmail(email);
+      errorEl.classList.add('hidden');
+      showToast('Reset link sent to your email');
+    } catch (err) {
+      errorEl.textContent = err.message.replace('Firebase: ', '').replace(/\(.*\)/, '');
+      errorEl.classList.remove('hidden');
+    }
   }
 
   // ---------- Groq API (via Netlify function) ----------
@@ -4204,8 +4270,34 @@
 
   function renderProfile() {
     const initial = (state.name || 'M')[0].toUpperCase();
-    document.getElementById('profileAvatar').textContent = initial;
-    document.getElementById('profileName').textContent = state.name || 'Mate';
+    const avatarEl = document.getElementById('profileAvatar');
+    const imgEl = document.getElementById('profileAvatarImg');
+    const initialEl = document.getElementById('profileAvatarInitial');
+
+    // Firebase user info
+    if (currentUser) {
+      document.getElementById('profileUserSection').style.display = '';
+      if (currentUser.photoURL) {
+        imgEl.src = currentUser.photoURL;
+        imgEl.style.display = '';
+        initialEl.style.display = 'none';
+      } else {
+        imgEl.style.display = 'none';
+        initialEl.style.display = '';
+      }
+      const displayName = currentUser.displayName || state.name || currentUser.email.split('@')[0] || 'Mate';
+      document.getElementById('profileName').textContent = displayName;
+      document.getElementById('profileEmail').textContent = currentUser.email || '';
+      if (currentUser.metadata && currentUser.metadata.createdAt) {
+        const d = new Date(currentUser.metadata.createdAt);
+        document.getElementById('profileMemberSince').textContent = `Member since ${d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`;
+      }
+      document.getElementById('profileDisplayNameInput').value = displayName;
+    } else {
+      document.getElementById('profileUserSection').style.display = 'none';
+    }
+
+    initialEl.textContent = initial;
     document.getElementById('profileGoal').textContent = state.goal || 'No goal set yet';
     document.getElementById('profileNameInput').value = state.name || '';
     document.getElementById('profileGoalInput').value = state.goal || '';
@@ -4305,6 +4397,7 @@
       document.getElementById('authSubmitBtn').textContent = 'Sign In';
       document.getElementById('authPassword').autocomplete = 'current-password';
       document.getElementById('authError').classList.add('hidden');
+      document.getElementById('authForgotRow').style.display = '';
     });
     document.getElementById('authToggleSignUp').addEventListener('click', () => {
       document.getElementById('authToggleSignUp').classList.add('active');
@@ -4312,6 +4405,7 @@
       document.getElementById('authSubmitBtn').textContent = 'Sign Up';
       document.getElementById('authPassword').autocomplete = 'new-password';
       document.getElementById('authError').classList.add('hidden');
+      document.getElementById('authForgotRow').style.display = 'none';
     });
     document.getElementById('authSubmitBtn').addEventListener('click', handleAuth);
     document.getElementById('authGoogleBtn').addEventListener('click', handleGoogleAuth);
@@ -4324,6 +4418,19 @@
         showToast('Signed out');
       } else {
         showAuthScreen();
+      }
+    });
+    document.getElementById('authForgotBtn').addEventListener('click', sendPasswordReset);
+    document.getElementById('profileSaveNameBtn').addEventListener('click', async () => {
+      if (!firebaseAuth || !currentUser) return;
+      const name = document.getElementById('profileDisplayNameInput').value.trim();
+      if (!name) return;
+      try {
+        await currentUser.updateProfile({ displayName: name });
+        showToast('Display name updated!');
+        renderProfile();
+      } catch (err) {
+        showToast('Error: ' + err.message);
       }
     });
 
