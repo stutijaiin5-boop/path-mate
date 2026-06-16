@@ -2692,10 +2692,16 @@
 
   async function initFirebase() {
     try {
-      const resp = await fetch('/.netlify/functions/firebase-config');
-      if (!resp.ok) throw new Error('Failed to fetch Firebase config');
-      const config = await resp.json();
-      if (!config.apiKey) throw new Error('Firebase config empty — set env vars');
+      const config = {
+        apiKey: 'AIzaSyAr0blD578_H6rnptLL0gaR9C3JjTK0-K0',
+        authDomain: 'path-mate.firebaseapp.com',
+        projectId: 'path-mate',
+        storageBucket: 'path-mate.firebasestorage.app',
+        messagingSenderId: '674673931512',
+        appId: '1:674673931512:web:724691a41d4d6212b7b70d',
+        measurementId: 'G-4SNB3MKVL1',
+      };
+      if (typeof firebase === 'undefined') throw new Error('Firebase SDK not loaded');
       firebaseApp = firebase.initializeApp(config);
       firebaseAuth = firebaseApp.auth();
       firebaseAuth.onAuthStateChanged(user => {
