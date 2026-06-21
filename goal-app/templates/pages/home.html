@@ -1,0 +1,59 @@
+<div id="page-home" class="page active">
+  <div class="home-hero">
+    <h1>Stop Planning.<br/>Start Executing.</h1>
+    <p class="sub">Turn your goal into a concrete, actionable execution plan</p>
+  </div>
+
+  <div class="home-inputs">
+    <div class="input-group">
+      <label for="goalInput">Your Goal</label>
+      <textarea id="goalInput" placeholder="e.g. Launch a profitable SaaS product by Q3 next year..." rows="2"></textarea>
+    </div>
+    <div class="input-group">
+      <label for="situationInput">Current Situation</label>
+      <textarea id="situationInput" placeholder="Describe where you are right now — skills, resources, constraints, timeline..." rows="4"></textarea>
+    </div>
+    <button id="generateBtn" class="generate-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Generate Execution Plan
+      <span class="keyboard-hint">⌘⏎</span>
+    </button>
+  </div>
+
+  <div id="reportContainer" class="report-container">
+    <div class="report-header">
+      <div class="report-header-left">
+        <h2 id="reportGoal">Goal</h2>
+        <span id="reportIdDisplay" class="report-id-badge">#0</span>
+      </div>
+      <div class="report-header-actions">
+        <button id="exportBtn" class="report-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          PDF
+        </button>
+        <button id="exportMdBtn" class="report-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          MD
+        </button>
+        <button id="exportDocxBtn" class="report-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          DOCX
+        </button>
+        <button id="exportZipBtn" class="report-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          ZIP
+        </button>
+        <button id="shareBtn" class="report-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Share
+        </button>
+      </div>
+    </div>
+    <div class="search-bar">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="searchInput" type="text" placeholder="Search within this report..." />
+      <button id="searchClear" class="search-clear">✕</button>
+    </div>
+    <div id="cardsGrid" class="cards-grid"></div>
+  </div>
+</div>

@@ -1,0 +1,101 @@
+.app-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+  position: relative;
+  z-index: 1;
+  min-height: calc(100vh - var(--nav-h));
+}
+
+.page { display: none; }
+.page.active { display: block; }
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.page-subtitle {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  margin-top: 0.25rem;
+}
+
+.home-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 3rem 0 1.5rem;
+  max-width: 660px;
+  margin: 0 auto;
+}
+
+.home-hero h1 {
+  font-size: 2.8rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  background: linear-gradient(135deg, var(--accent), var(--accent2), var(--accent));
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 4s ease infinite;
+}
+
+.home-hero .sub {
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  margin-top: 0.75rem;
+  font-weight: 400;
+  max-width: 480px;
+}
+
+.home-inputs {
+  width: 100%;
+  max-width: 620px;
+  margin: 2rem auto 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.report-container {
+  display: none;
+  min-height: 200px;
+}
+.report-container.visible { display: block; }
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.pagination button {
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--glass-border);
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.78rem;
+  transition: all var(--transition);
+}
+
+.pagination button:hover { color: var(--text); background: var(--surface-hover); }
+.pagination button.active { color: var(--accent); background: var(--accent-glow); border-color: var(--accent); }
+.pagination button:disabled { opacity: 0.3; cursor: default; }
