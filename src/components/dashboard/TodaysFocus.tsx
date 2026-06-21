@@ -33,7 +33,7 @@ export default function TodaysFocus({ tasks, date, onToggle }: TodaysFocusProps)
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
     >
-      <h3 className="text-lg font-bold text-text mb-4">Today&apos;s Focus</h3>
+      <h3 className="text-lg font-bold text-text mb-4">Tasks</h3>
       <div className="flex flex-col gap-3">
         {tasks.slice(0, 4).map((task, i) => (
           <motion.button
