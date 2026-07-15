@@ -1,6 +1,7 @@
 export type CurrentLevel = 'beginner' | 'intermediate' | 'almost-there';
 export type TaskCategory = 'study' | 'practice' | 'networking' | 'personal';
 export type Commitment = 'school' | 'college' | 'job' | 'internship' | 'coaching' | 'family';
+export type Priority = 'low' | 'medium' | 'high';
 
 export interface UserState {
   name: string;
@@ -15,6 +16,7 @@ export interface UserState {
   roadmap: Roadmap | null;
   taskHistory: Record<string, boolean>;
   burnoutDismissedAt: string | null;
+  replanDismissedAt: string | null;
 }
 
 export interface Phase {
@@ -36,6 +38,8 @@ export interface Task {
   date: string;
   day: number;
   phaseId: string;
+  priority?: Priority;
+  aiNote?: string;
 }
 
 export interface DayPlan {
@@ -62,4 +66,18 @@ export interface Badge {
   icon: string;
   unlocked: boolean;
   unlockedAt?: string;
+}
+
+export interface ProgressStatus {
+  label: string;
+  variant: 'ahead' | 'on-track' | 'behind' | 'critical';
+  daysDiff: number;
+}
+
+export interface WeekGroup {
+  weekIndex: number;
+  label: string;
+  days: DayPlan[];
+  completedDays: number;
+  totalDays: number;
 }

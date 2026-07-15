@@ -1,6 +1,6 @@
 'use client';
 
-import { UserState, Roadmap, Task, Badge } from './types';
+import { UserState, Roadmap, Task, Badge, ProgressStatus, WeekGroup } from './types';
 
 const STORAGE_KEY = 'pathmate-state';
 
@@ -17,6 +17,7 @@ const defaultState: UserState = {
   roadmap: null,
   taskHistory: {},
   burnoutDismissedAt: null,
+  replanDismissedAt: null,
 };
 
 function loadState(): UserState {
@@ -265,6 +266,102 @@ export function getOverallProgress(state: UserState): number {
   return totalTasks > 0 ? Math.min(100, Math.round((completed / totalTasks) * 100)) : 0;
 }
 
+export function getCurrentDay(state: UserState): number {
+  if (!state.roadmap || state.roadmap.days.length === 0) return 0;
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayDay = state.roadmap.days.find(d => d.date === todayStr);
+  if (todayDay) return todayDay.day;
+
+  const start = new Date(state.roadmap.startDate);
+  const now = new Date();
+  const diff = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  return Math.max(1, Math.min(diff + 1, state.roadmap.totalDays));
+}
+
+export function getProgressStatus(state: UserState): ProgressStatus {
+  if (!state.roadmap) return { label: 'Not started', variant: 'on-track', daysDiff: 0 };
+
+  const totalDays = state.roadmap.totalDays;
+  const currentDay = getCurrentDay(state);
+  const daysRemaining = getDaysRemaining(state);
+  const idealDay = totalDays - daysRemaining;
+  const daysDiff = currentDay - idealDay;
+
+  const completedTasks = Object.values(state.taskHistory).filter(Boolean).length;
+  const totalTasks = state.roadmap.days.reduce((s, d) => s + d.tasks.length, 0);
+
+  const expectedCompletionRate = totalDays > 0 ? idealDay / totalDays : 0;
+  const actualCompletionRate = totalTasks > 0 ? completedTasks / totalTasks : 0;
+  const completionRatio = expectedCompletionRate > 0 ? actualCompletionRate / expectedCompletionRate : 1;
+
+  if (completionRatio >= 1.1) return { label: `${Math.abs(daysDiff)} Days Ahead`, variant: 'ahead', daysDiff };
+  if (completionRatio >= 0.9) return { label: 'On Track', variant: 'on-track', daysDiff: 0 };
+  if (completionRatio >= 0.7) return { label: `${Math.abs(daysDiff)} Days Behind`, variant: 'behind', daysDiff };
+  return { label: `${Math.abs(daysDiff)} Days Behind`, variant: 'critical', daysDiff };
+}
+
+export function getMissedDays(state: UserState): number {
+  if (!state.roadmap) return 0;
+  const today = new Date();
+  let missed = 0;
+
+  for (let i = 1; i <= 30; i++) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().split('T')[0];
+    const day = state.roadmap.days.find(d => d.date === dateStr);
+    if (!day || day.tasks.length === 0) continue;
+
+    const anyDone = day.tasks.some(t => state.taskHistory[`${dateStr}_${t.id}`]);
+    if (!anyDone) missed++;
+    else break;
+  }
+
+  return missed;
+}
+
+export function getCompletionRate(state: UserState): number {
+  const totalTasks = state.roadmap?.days.reduce((s, d) => s + d.tasks.length, 0) || 0;
+  const completed = Object.values(state.taskHistory).filter(Boolean).length;
+  return totalTasks > 0 ? Math.round((completed / totalTasks) * 100) : 0;
+}
+
+export function getConsistencyScore(state: UserState): number {
+  if (!state.roadmap) return 0;
+  const weekDays = state.roadmap.days.filter(d => {
+    const date = new Date(d.date);
+    const diff = (new Date().getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
+    return diff >= 0 && diff <= 28;
+  });
+
+  if (weekDays.length === 0) return 0;
+  const daysWithWork = weekDays.filter(d => d.tasks.length > 0).length;
+  const daysCompleted = weekDays.filter(d =>
+    d.tasks.length > 0 && d.tasks.every(t => state.taskHistory[`${d.date}_${t.id}`])
+  ).length;
+
+  return daysWithWork > 0 ? Math.round((daysCompleted / daysWithWork) * 100) : 0;
+}
+
+export function getHoursInvested(state: UserState): number {
+  const minutes = Object.keys(state.taskHistory)
+    .filter(k => state.taskHistory[k])
+    .reduce((sum, key) => {
+      const date = key.split('_')[0];
+      const day = state.roadmap?.days.find(d => d.date === date);
+      const taskId = key.substring(date.length + 1);
+      const task = day?.tasks.find(t => t.id === taskId);
+      return sum + (task?.estimatedTime || 0);
+    }, 0);
+  return Math.round(minutes / 60);
+}
+
+export function dismissReplan(): void {
+  updateState({
+    replanDismissedAt: new Date().toISOString().split('T')[0],
+  });
+}
+
 export function getWeeklyStats(state: UserState): { day: string; completed: number; total: number }[] {
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const today = new Date();
@@ -327,4 +424,26 @@ export function getStreakDates(state: UserState): string[] {
     }
   }
   return dates;
+}
+
+export function getWeekGroups(state: UserState): WeekGroup[] {
+  if (!state.roadmap) return [];
+  const weeks: WeekGroup[] = [];
+
+  for (const phase of state.roadmap.phases) {
+    const phaseDays = state.roadmap.days.filter(d => d.phaseId === phase.id);
+    const completedDays = phaseDays.filter(d =>
+      d.tasks.every(t => state.taskHistory[`${d.date}_${t.id}`])
+    );
+
+    weeks.push({
+      weekIndex: state.roadmap.phases.indexOf(phase),
+      label: phase.weekRange,
+      days: phaseDays,
+      completedDays: completedDays.length,
+      totalDays: phaseDays.length,
+    });
+  }
+
+  return weeks;
 }
