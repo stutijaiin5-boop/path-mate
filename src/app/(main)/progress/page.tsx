@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { TrendingUp, Award, Clock, Sparkles, Zap, BarChart3 } from 'lucide-react';
+import { TrendingUp, Award, Clock, Sparkles, Zap, BarChart3, CalendarDays } from 'lucide-react';
 import ProgressRing from '@/components/ui/ProgressRing';
 import {
   getState,
@@ -13,6 +13,7 @@ import {
   getConsistencyScore,
   getHoursInvested,
   getCurrentDay,
+  getStreakDates,
 } from '@/lib/store';
 import { BarChart, Bar, XAxis, ResponsiveContainer, Tooltip } from 'recharts';
 
@@ -163,6 +164,37 @@ export default function ProgressPage() {
               </span>
             </motion.div>
           ))}
+        </div>
+      </motion.div>
+
+      <motion.div
+        className="p-4 rounded-2xl bg-surface border border-border shadow-sm"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.38 }}
+      >
+        <h2 className="text-sm font-semibold text-text mb-3 flex items-center gap-2">
+          <CalendarDays size={15} className="text-primary" />
+          Journey Calendar
+        </h2>
+        <div className="flex flex-wrap gap-1">
+          {getStreakDates(state).length > 0 ? (
+            getStreakDates(state).slice(-90).map((date, i) => (
+              <motion.div
+                key={date}
+                className="w-3 h-3 rounded-sm"
+                style={{
+                  backgroundColor: `hsl(${140 + Math.min(i, 20) * 2}, 60%, ${70 - Math.min(i, 10) * 2}%)`,
+                }}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: i * 0.005 }}
+                title={date}
+              />
+            ))
+          ) : (
+            <p className="text-xs text-text-secondary">Complete your first task to start your streak!</p>
+          )}
         </div>
       </motion.div>
 
